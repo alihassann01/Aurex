@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import requestRoutes from './routes/request.routes.js';
 import authRoutes from './routes/auth.routes.js';
+import permitRoutes from './routes/permit.routes.js';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/permits', permitRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Aurex API is running' });
