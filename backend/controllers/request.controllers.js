@@ -2,6 +2,7 @@ import CivicRequest from "../models/civicRequests.js";
 import Department from "../models/department.model.js";
 import User from "../models/user.model.js";
 import calculateSlaDeadline from "../utils/calculateSlaDeadline.js";
+import createNotification from "../utils/createNotification.js";
 import generateTicketId from "../utils/generateTicketId.js";
 
 const allowedStatuses = new Set([
@@ -206,6 +207,14 @@ const updateRequestStatus = async (req, res, next) => {
 
     await request.save();
 
+    await createNotification({
+      user: request.resident,
+      title: "Request Status Updated",
+      message: `Your request ${request.ticketId} is now ${request.status}.`,
+      type: "request",
+      relatedId: request._id,
+    });
+
     res.status(200).json({
       message: "Request status updated successfully",
       request,
@@ -257,6 +266,14 @@ const assignRequest = async (req, res, next) => {
     request.status = "assigned";
 
     await request.save();
+
+    await createNotification({
+      user: staffUser._id,
+      title: "New Request Assigned",
+      message: `You have been assigned request ${request.ticketId}.`,
+      type: "request",
+      relatedId: request._id,
+    });
 
     res.status(200).json({
       message: "Request assigned successfully",

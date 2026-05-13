@@ -2,6 +2,7 @@ import PermitApplication from "../models/permitApplication.model.js";
 import calculatePermitFee from "../utils/calculatePermitFee.js";
 import generateApplicationNumber from "../utils/generateApplicationNumber.js";
 import generateCertificateNumber from "../utils/generateCertificateNumber.js";
+import createNotification from "../utils/createNotification.js";
 import generateReceiptNumber from "../utils/generateReceiptNumber.js";
 
 const getIdValue = (value) => value?._id || value;
@@ -231,6 +232,14 @@ const updatePermitStatus = async (req, res, next) => {
     }
 
     await permit.save();
+
+    await createNotification({
+      user: permit.applicant,
+      title: "Permit Status Updated",
+      message: `Your permit ${permit.applicationNumber} is now ${permit.status}.`,
+      type: "permit",
+      relatedId: permit._id,
+    });
 
     res.status(200).json({
       message: "Permit status updated successfully",

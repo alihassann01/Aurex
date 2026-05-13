@@ -1,4 +1,6 @@
 import Announcement from "../models/announcement.model.js";
+import User from "../models/user.model.js";
+import createNotification from "../utils/createNotification.js";
 
 const createAnnouncement = async (req, res, next) => {
   try {
@@ -16,6 +18,20 @@ const createAnnouncement = async (req, res, next) => {
       expiresAt: expiresAt || null,
       createdBy: req.user._id,
     });
+
+    const residents = await User.find({ role: "resident" }).select("_id");
+
+    await Promise.all(
+      residents.map((resident) =>
+        createNotification({
+          user: resident._id,
+          title: "New City Announcement",
+          message: announcement.title,
+          type: "announcement",
+          relatedId: announcement._id,
+        })
+      )
+    );
 
     res.status(201).json({
       message: "Announcement created successfully",
