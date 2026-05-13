@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import type { UserRole } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
-import { Eye, EyeOff, Building2, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Building2, ArrowRight, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,12 +18,33 @@ import { useAuthStore } from '@/store/authStore';
 import { registerUser } from '@/lib/auth';
 import axios from 'axios';
 
+// Role options for the selector
+const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
+  { value: 'resident', label: 'Resident', description: 'Submit requests & track permits' },
+  { value: 'staff', label: 'Staff', description: 'Handle assigned civic tickets' },
+  { value: 'department_admin', label: 'Department Admin', description: 'Manage department operations' },
+  { value: 'super_admin', label: 'Super Admin', description: 'Full system administration' },
+];
+
+function getDashboardRoute(role: UserRole): string {
+  switch (role) {
+    case 'resident': return '/resident';
+    case 'staff': return '/staff';
+    case 'department_admin': return '/dept-admin';
+    case 'super_admin': return '/super-admin';
+    default: return '/resident';
+  }
+}
+
 // Zod schema matching backend User model fields
 // Backend: { name: required, email: required+unique, password: required, role: optional(defaults to 'resident') }
 const registerSchema = z
   .object({
     name: z.string().min(2, 'Name must be at least 2 characters').trim(),
     email: z.string().email('Please enter a valid email address').trim(),
+    role: z.enum(['resident', 'staff', 'department_admin', 'super_admin'], {
+      required_error: 'Please select a role',
+    }),
     password: z
       .string()
       .min(6, 'Password must be at least 6 characters'),
@@ -47,6 +69,7 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: { role: 'resident' },
   });
 
   const mutation = useMutation({
@@ -55,7 +78,7 @@ export default function RegisterPage() {
         name: data.name,
         email: data.email,
         password: data.password,
-        // role defaults to 'resident' on backend if not provided
+        role: data.role,
       }),
     onSuccess: (data) => {
       // Backend returns token + user on register, so auto-login
@@ -67,7 +90,7 @@ export default function RegisterPage() {
       document.cookie = `civic-role=${data.user.role}; path=/; max-age=${maxAge}`;
 
       toast.success('Account created successfully! Welcome to CivicConnect.');
-      router.push('/resident');
+      router.push(getDashboardRoute(data.user.role));
     },
     onError: (error: unknown) => {
       // Show exact backend error message (e.g. "Email already in use")
@@ -137,7 +160,7 @@ export default function RegisterPage() {
             <CardHeader className="space-y-1 px-0 lg:px-6">
               <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
               <CardDescription>
-                Fill in your details to get started as a resident
+                Fill in your details to get started
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 lg:px-6">
@@ -151,6 +174,28 @@ export default function RegisterPage() {
                     {...register('name')}
                     aria-label="Full name"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <div className="relative">
+                    <select
+                      id="role"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none cursor-pointer pr-10"
+                      {...register('role')}
+                      aria-label="Select your role"
+                    >
+                      {ROLE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label} — {opt.description}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                  </div>
+                  {errors.role && (
+                    <p className="text-sm text-destructive">{errors.role.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
