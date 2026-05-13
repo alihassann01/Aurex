@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import requestRoutes from './routes/request.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import permitRoutes from './routes/permit.routes.js';
+import announcementRoutes from './routes/announcement.routes.js';
+import eventRoutes from './routes/event.routes.js';
 
 dotenv.config();
 
@@ -34,6 +36,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/permits', permitRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/events', eventRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Aurex API is running' });
