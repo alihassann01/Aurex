@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { STATUS_LABELS, STATUS_COLORS } from '@/lib/constants';
+import { STATUS_LABELS } from '@/lib/constants';
 import { Check } from 'lucide-react';
 import type { RequestStatus } from '@/types';
 

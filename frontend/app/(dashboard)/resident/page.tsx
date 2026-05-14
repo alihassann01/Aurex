@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Filter, Search, Clock, AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
+import { Plus, Search, Clock, AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { SLABadge } from '@/components/shared/SLABadge';
-import { RequestStatusPipeline } from '@/components/shared/RequestStatusPipeline';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/shared/SharedComponents';
-import { PRIORITY_COLORS, STATUS_COLORS } from '@/lib/constants';
-import { cn, formatDate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TicketCard } from '@/components/crms/TicketCard';
@@ -59,12 +55,13 @@ const mockRequests: CivicRequest[] = [
 
 export default function ResidentDashboard() {
   const user = useAuthStore((s) => s.user);
+  const [requests, setRequests] = useState(mockRequests);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<CivicRequest | null>(null);
 
-  const filteredRequests = mockRequests.filter((req) => {
+  const filteredRequests = requests.filter((req) => {
     const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
     const matchesSearch =
       !searchQuery ||
@@ -74,11 +71,21 @@ export default function ResidentDashboard() {
   });
 
   const stats = [
-    { label: 'Total Requests', value: mockRequests.length, icon: FileText, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'In Progress', value: mockRequests.filter((r) => r.status === 'In Progress').length, icon: Clock, color: 'text-amber-500 bg-amber-500/10' },
-    { label: 'Resolved', value: mockRequests.filter((r) => r.status === 'Resolved').length, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
-    { label: 'Urgent', value: mockRequests.filter((r) => r.sla.status === 'red').length, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10' },
+    { label: 'Total Requests', value: requests.length, icon: FileText, color: 'text-blue-500 bg-blue-500/10' },
+    { label: 'In Progress', value: requests.filter((r) => r.status === 'In Progress').length, icon: Clock, color: 'text-amber-500 bg-amber-500/10' },
+    { label: 'Resolved', value: requests.filter((r) => r.status === 'Resolved').length, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
+    { label: 'Urgent', value: requests.filter((r) => r.sla.status === 'red').length, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10' },
   ];
+
+  const handleRequestCreated = (request: CivicRequest) => {
+    setRequests((current) => [request, ...current]);
+    setShowSubmitForm(false);
+  };
+
+  const handleRequestChanged = (request: CivicRequest) => {
+    setRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+    setSelectedTicket(request);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -86,7 +93,7 @@ export default function ResidentDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            Welcome back, {user?.name?.split(' ')[0] || 'Resident'} 👋
+            Welcome back, {user?.name?.split(' ')[0] || 'Resident'}
           </h1>
           <p className="text-muted-foreground mt-1">Here&apos;s an overview of your civic requests</p>
         </div>
@@ -163,7 +170,7 @@ export default function ResidentDashboard() {
           <DialogHeader>
             <DialogTitle>Submit New Civic Request</DialogTitle>
           </DialogHeader>
-          <RequestSubmissionForm onSuccess={() => setShowSubmitForm(false)} />
+          <RequestSubmissionForm onSuccess={handleRequestCreated} />
         </DialogContent>
       </Dialog>
 
@@ -173,6 +180,7 @@ export default function ResidentDashboard() {
           request={selectedTicket}
           open={!!selectedTicket}
           onClose={() => setSelectedTicket(null)}
+          onRequestChange={handleRequestChanged}
         />
       )}
     </div>

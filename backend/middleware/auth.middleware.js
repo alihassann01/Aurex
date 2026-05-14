@@ -20,7 +20,7 @@ export const authMiddleware = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || process.env.JWT_SECRET || 'your_secret_key');
 
     // Find user by ID from token without exposing the password hash
     const user = await User.findById(decoded.id).select('-password');

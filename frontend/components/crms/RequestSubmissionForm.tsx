@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '@/lib/constants';
 import { formatFileSize } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
+import type { CivicRequest, RequestPriority } from '@/types';
 
 const requestSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters').max(100, 'Title must be under 100 characters'),
@@ -25,12 +27,13 @@ const requestSchema = z.object({
 type RequestFormData = z.infer<typeof requestSchema>;
 
 interface RequestSubmissionFormProps {
-  onSuccess: () => void;
+  onSuccess: (request: CivicRequest) => void;
 }
 
 export function RequestSubmissionForm({ onSuccess }: RequestSubmissionFormProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const user = useAuthStore((state) => state.user);
 
   const {
     register,
@@ -44,14 +47,55 @@ export function RequestSubmissionForm({ onSuccess }: RequestSubmissionFormProps)
   const mutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
       await new Promise((r) => setTimeout(r, 1500));
-      return { ticketId: `CR-${Math.floor(1000 + Math.random() * 9000)}` };
+      const ticketId = `CR-${Math.floor(1000 + Math.random() * 9000)}`;
+      const daysLeftByPriority: Record<RequestPriority, number> = {
+        Low: 10,
+        Medium: 5,
+        High: 2,
+        Emergency: 0,
+      };
+      const daysLeft = daysLeftByPriority[data.priority];
+      const createdAt = new Date().toISOString();
+
+      return {
+        id: `req-${Date.now()}`,
+        ticketId,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        priority: data.priority,
+        status: 'Submitted',
+        location: data.location,
+        attachments: files.map((file, index) => ({
+          id: `att-${Date.now()}-${index}`,
+          fileName: file.name,
+          fileUrl: URL.createObjectURL(file),
+          fileType: file.type,
+          fileSize: file.size,
+        })),
+        sla: {
+          deadline: new Date(Date.now() + Math.max(daysLeft, 1) * 24 * 60 * 60 * 1000).toISOString(),
+          daysLeft,
+          status: data.priority === 'Emergency' ? 'red' : data.priority === 'High' ? 'amber' : 'green',
+          breached: false,
+        },
+        comments: [],
+        createdBy: user || {
+          id: 'resident-local',
+          name: 'Resident',
+          email: 'resident@civicconnect.test',
+          role: 'resident',
+        },
+        createdAt,
+        updatedAt: createdAt,
+      } satisfies CivicRequest;
     },
-    onSuccess: (data) => {
-      toast.success(`Request submitted! Ticket ID: ${data.ticketId}`, {
+    onSuccess: (request) => {
+      toast.success(`Request submitted! Ticket ID: ${request.ticketId}`, {
         description: 'You can track your request in the dashboard.',
         duration: 6000,
       });
-      onSuccess();
+      onSuccess(request);
     },
     onError: () => {
       toast.error('Failed to submit request. Please try again.');

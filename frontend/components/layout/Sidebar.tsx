@@ -6,27 +6,16 @@ import { usePathname } from 'next/navigation';
 import {
   Building2,
   LayoutDashboard,
-  FileText,
   Bell,
   BarChart3,
   Users,
-  Settings,
-  Menu,
   X,
-  LogOut,
-  Moon,
-  Sun,
-  ChevronLeft,
   Shield,
   Briefcase,
 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { useRBAC } from '@/hooks/useRBAC';
-import { Button } from '@/components/ui/button';
-import { NotificationDropdown } from '@/components/shared/NotificationDropdown';
 
 interface NavItem {
   label: string;
@@ -46,10 +35,8 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { can } = useRBAC();
-  const { theme, setTheme } = useTheme();
 
   const basePath = `/${pathname.split('/')[1]}`;
 
@@ -71,13 +58,13 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-300 ease-in-out',
+          'fixed top-0 left-0 z-50 h-full border-r border-border bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-300 ease-in-out',
           sidebarOpen ? 'w-64' : 'w-0 lg:w-20',
           'lg:relative'
         )}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-white/10">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <Link href={basePath} className="flex items-center gap-2.5 overflow-hidden">
             <div className="h-9 w-9 min-w-[36px] rounded-lg bg-sidebar-accent flex items-center justify-center">
               <Building2 className="h-5 w-5 text-white" />
@@ -111,7 +98,7 @@ export function Sidebar() {
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                   isActive
                     ? 'bg-sidebar-accent text-white shadow-sm'
-                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5'
+                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-secondary'
                 )}
                 aria-label={item.label}
               >
@@ -127,21 +114,8 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom section */}
-        <div className="p-3 border-t border-white/10 space-y-1">
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5 transition-all w-full"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun className="h-5 w-5 min-w-[20px]" /> : <Moon className="h-5 w-5 min-w-[20px]" />}
-            <span className={cn(
-              'whitespace-nowrap transition-opacity duration-200',
-              sidebarOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
-            )}>
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
+        <div className="border-t border-border p-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <span className={cn(sidebarOpen ? 'opacity-100' : 'opacity-0 lg:hidden')}>Light civic OS</span>
         </div>
       </aside>
     </>

@@ -109,44 +109,48 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-        <div className="absolute top-20 right-20 w-72 h-72 bg-emerald-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-32 left-16 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
-
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+      <div className="hidden lg:flex lg:w-1/2 border-r border-border bg-card">
+        <div className="flex flex-col justify-center px-12 xl:px-20">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Building2 className="h-7 w-7 text-white" />
+            <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
+              <Building2 className="h-7 w-7 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-white">CivicConnect</span>
+            <span className="text-2xl font-bold">CivicConnect</span>
           </div>
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
-            Join your
-            <br />
-            <span className="text-emerald-200">community today.</span>
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-primary">New workspace</p>
+          <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+            Create access for the right civic role.
           </h1>
-          <p className="text-emerald-100/80 text-lg max-w-md leading-relaxed">
+          <p className="text-muted-foreground text-lg max-w-md leading-relaxed">
             Create your free account and become an active participant in making your city smarter and more responsive.
           </p>
 
+          <div
+            role="img"
+            aria-label="City street and civic buildings"
+            className="mt-10 h-56 rounded-lg border border-border bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1000&q=80')",
+            }}
+          />
+
           <div className="mt-12 space-y-4">
             {[
-              '🏗️ Submit and track civic requests',
-              '📋 Apply for permits digitally',
-              '📢 Stay informed with city announcements',
-              '📊 Access real-time city analytics',
+              'Submit and track civic requests',
+              'Apply for permits digitally',
+              'Stay informed with city announcements',
+              'Access real-time city analytics',
             ].map((item) => (
-              <div key={item} className="flex items-center gap-3 text-emerald-100">
-                <span className="text-lg">{item}</span>
+              <div key={item} className="flex items-center gap-3 text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                <span className="text-base">{item}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background overflow-y-auto">
         <div className="w-full max-w-md animate-fade-in">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
@@ -181,13 +185,13 @@ export default function RegisterPage() {
                   <div className="relative">
                     <select
                       id="role"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none cursor-pointer pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 appearance-none cursor-pointer pr-10"
                       {...register('role')}
                       aria-label="Select your role"
                     >
                       {ROLE_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label} — {opt.description}
+                          {opt.label} - {opt.description}
                         </option>
                       ))}
                     </select>
@@ -216,7 +220,7 @@ export default function RegisterPage() {
                     <Input
                       id="reg-password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
+                      placeholder="********"
                       error={errors.password?.message}
                       {...register('password')}
                       aria-label="Password"
@@ -238,7 +242,7 @@ export default function RegisterPage() {
                     <Input
                       id="reg-confirm"
                       type={showConfirm ? 'text' : 'password'}
-                      placeholder="••••••••"
+                      placeholder="********"
                       error={errors.confirmPassword?.message}
                       {...register('confirmPassword')}
                       aria-label="Confirm password"

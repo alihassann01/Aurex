@@ -15,6 +15,7 @@ export function PaymentStub({ fee, permitType }: PaymentStubProps) {
   const processingFee = Math.round(fee * 0.05);
   const tax = Math.round(fee * 0.08);
   const total = fee + processingFee + tax;
+  const receiptNumber = `${permitType.slice(0, 3).toUpperCase()}-${String(total).padStart(6, '0')}`;
 
   return (
     <Card>
@@ -70,7 +71,7 @@ export function PaymentStub({ fee, permitType }: PaymentStubProps) {
                 <div className="flex justify-between font-bold"><span>Total:</span><span>${total.toLocaleString()}</span></div>
               </div>
               <div className="text-center text-xs text-muted-foreground">
-                <p>Receipt #{Math.floor(100000 + Math.random() * 900000)}</p>
+                <p>Receipt #{receiptNumber}</p>
                 <p>{new Date().toLocaleDateString()}</p>
               </div>
             </div>

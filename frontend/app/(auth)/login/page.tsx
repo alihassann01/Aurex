@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -43,7 +43,7 @@ function getDashboardRoute(role: UserRole): string {
   }
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -92,30 +92,32 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-32 right-16 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+      <div className="hidden lg:flex lg:w-1/2 border-r border-border bg-card">
+        <div className="flex flex-col justify-center px-12 xl:px-20">
           <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Building2 className="h-7 w-7 text-white" />
+            <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
+              <Building2 className="h-7 w-7 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-white">CivicConnect</span>
+            <span className="text-2xl font-bold">CivicConnect</span>
           </div>
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
-            Your city,
-            <br />
-            <span className="text-blue-200">at your fingertips.</span>
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-primary">Secure access</p>
+          <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+            Return to your civic workspace.
           </h1>
-          <p className="text-blue-100/80 text-lg max-w-md leading-relaxed">
+          <p className="text-muted-foreground text-lg max-w-md leading-relaxed">
             Submit civic requests, track permits, stay informed with announcements, and
-            help build a smarter city — all from one unified portal.
+            help build a smarter city from one unified portal.
           </p>
+
+          <div
+            role="img"
+            aria-label="Modern residential street"
+            className="mt-10 h-56 rounded-lg border border-border bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1000&q=80')",
+            }}
+          />
 
           <div className="mt-12 flex gap-8">
             {[
@@ -124,18 +126,16 @@ export default function LoginPage() {
               { label: 'Avg Resolution', value: '2.4 days' },
             ].map((stat) => (
               <div key={stat.label}>
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <div className="text-sm text-blue-200/70">{stat.label}</div>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Right panel — login form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-md animate-fade-in">
-          {/* Mobile branding */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
               <Building2 className="h-5 w-5 text-primary-foreground" />
@@ -171,7 +171,7 @@ export default function LoginPage() {
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
+                      placeholder="********"
                       autoComplete="current-password"
                       error={errors.password?.message}
                       {...register('password')}
@@ -230,5 +230,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

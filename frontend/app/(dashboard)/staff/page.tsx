@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Clock, AlertTriangle, CheckCircle2, Users, ArrowUpDown, Filter } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle2, Users, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TicketCard } from '@/components/crms/TicketCard';
 import { TicketDetailModal } from '@/components/crms/TicketDetailModal';
-import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 import type { CivicRequest } from '@/types';
 
@@ -35,28 +34,44 @@ const mockStaffRequests: CivicRequest[] = [
 ];
 
 export default function StaffDashboard() {
-  const user = useAuthStore((s) => s.user);
+  const [requests, setRequests] = useState(mockStaffRequests);
   const [selectedTicket, setSelectedTicket] = useState<CivicRequest | null>(null);
   const [sortBy, setSortBy] = useState<'priority' | 'sla'>('sla');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const sortedRequests = [...mockStaffRequests].sort((a, b) => {
+  const sortedRequests = [...requests].sort((a, b) => {
     if (sortBy === 'sla') return a.sla.daysLeft - b.sla.daysLeft;
     const priorityOrder = { Emergency: 0, High: 1, Medium: 2, Low: 3 };
     return priorityOrder[a.priority] - priorityOrder[b.priority];
   });
 
   const stats = [
-    { label: 'Assigned', value: 3, icon: Users, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'In Progress', value: 1, icon: Clock, color: 'text-amber-500 bg-amber-500/10' },
-    { label: 'Resolved Today', value: 2, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
-    { label: 'SLA At Risk', value: 2, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10' },
+    { label: 'Assigned', value: requests.length, icon: Users, color: 'text-blue-500 bg-blue-500/10' },
+    { label: 'In Progress', value: requests.filter((r) => r.status === 'In Progress').length, icon: Clock, color: 'text-amber-500 bg-amber-500/10' },
+    { label: 'Resolved Today', value: requests.filter((r) => r.status === 'Resolved').length, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
+    { label: 'SLA At Risk', value: requests.filter((r) => r.sla.status === 'red').length, icon: AlertTriangle, color: 'text-red-500 bg-red-500/10' },
   ];
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  const handleBulkUpdate = () => {
+    setRequests((current) =>
+      current.map((request) =>
+        selectedIds.includes(request.id)
+          ? { ...request, status: 'In Progress', updatedAt: new Date().toISOString() }
+          : request
+      )
+    );
+    setSelectedIds([]);
+  };
+
+  const handleRequestChanged = (request: CivicRequest) => {
+    setRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+    setSelectedTicket(request);
   };
 
   return (
@@ -104,7 +119,7 @@ export default function StaffDashboard() {
           </Button>
         </div>
         {selectedIds.length > 0 && (
-          <Button size="sm" variant="secondary">
+          <Button size="sm" variant="secondary" onClick={handleBulkUpdate}>
             Bulk Update ({selectedIds.length})
           </Button>
         )}
@@ -132,6 +147,7 @@ export default function StaffDashboard() {
           request={selectedTicket}
           open={!!selectedTicket}
           onClose={() => setSelectedTicket(null)}
+          onRequestChange={handleRequestChanged}
         />
       )}
     </div>

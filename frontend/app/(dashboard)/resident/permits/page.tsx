@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, FileText } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PermitWizard } from '@/components/permits/PermitWizard';
 import { PermitStatusTracker } from '@/components/permits/PermitStatusTracker';
@@ -20,8 +20,14 @@ const mockPermits: Permit[] = [
 ];
 
 export default function PermitsPage() {
+  const [permits, setPermits] = useState(mockPermits);
   const [showWizard, setShowWizard] = useState(false);
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
+
+  const handlePermitCreated = (permit: Permit) => {
+    setPermits((current) => [permit, ...current]);
+    setShowWizard(false);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -37,7 +43,7 @@ export default function PermitsPage() {
 
       {/* Permit List */}
       <div className="grid gap-4">
-        {mockPermits.map((permit) => (
+        {permits.map((permit) => (
           <Card key={permit.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedPermit(permit)}>
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
@@ -64,7 +70,7 @@ export default function PermitsPage() {
           <DialogHeader>
             <DialogTitle>New Permit Application</DialogTitle>
           </DialogHeader>
-          <PermitWizard onSuccess={() => setShowWizard(false)} />
+          <PermitWizard onSuccess={handlePermitCreated} />
         </DialogContent>
       </Dialog>
 

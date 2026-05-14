@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn, formatFileSize } from '@/lib/utils';
-import type { PermitType } from '@/types';
+import type { Permit, PermitType } from '@/types';
 
 const STEPS = ['Basic Info', 'Document Upload', 'Review', 'Submit'];
 
@@ -40,7 +40,7 @@ type BasicInfoData = z.infer<typeof basicInfoSchema>;
 
 interface PermitWizardProps {
   type?: PermitType;
-  onSuccess?: () => void;
+  onSuccess?: (permit: Permit) => void;
 }
 
 const STORAGE_KEY = 'civic-permit-draft';
@@ -52,13 +52,13 @@ export function PermitWizard({ type: initialType, onSuccess }: PermitWizardProps
   const savedDraft = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
   const defaultValues = savedDraft ? JSON.parse(savedDraft) : { type: initialType || '' };
 
-  const { register, control, handleSubmit, watch, formState: { errors }, getValues } = useForm<BasicInfoData>({
+  const { register, control, handleSubmit, formState: { errors }, getValues } = useForm<BasicInfoData>({
     resolver: zodResolver(basicInfoSchema),
     defaultValues,
   });
 
-  const permitType = watch('type');
-  const allValues = watch();
+  const permitType = useWatch({ control, name: 'type' });
+  const allValues = useWatch({ control });
 
   // Auto-save draft on each change
   useEffect(() => {
@@ -71,12 +71,40 @@ export function PermitWizard({ type: initialType, onSuccess }: PermitWizardProps
   const submitMutation = useMutation({
     mutationFn: async () => {
       await new Promise((r) => setTimeout(r, 1500));
-      return { permitNumber: `PRM-${Math.floor(10000 + Math.random() * 90000)}` };
+      const values = getValues();
+      const permitNumber = `PRM-${Math.floor(10000 + Math.random() * 90000)}`;
+      const fees: Record<PermitType, number> = {
+        construction: 1500,
+        event: 500,
+        business: 2000,
+      };
+      const createdAt = new Date().toISOString();
+
+      return {
+        id: `permit-${Date.now()}`,
+        permitNumber,
+        type: values.type,
+        status: 'Submitted',
+        applicantName: values.applicantName,
+        businessName: values.businessName,
+        address: values.address,
+        description: values.description,
+        documents: files.map((file, index) => ({
+          id: `permit-file-${Date.now()}-${index}`,
+          fileName: file.name,
+          fileUrl: URL.createObjectURL(file),
+          fileType: file.type,
+          fileSize: file.size,
+        })),
+        fee: fees[values.type],
+        createdAt,
+        updatedAt: createdAt,
+      } satisfies Permit;
     },
-    onSuccess: (data) => {
+    onSuccess: (permit) => {
       localStorage.removeItem(STORAGE_KEY);
-      toast.success(`Permit application submitted! Number: ${data.permitNumber}`);
-      onSuccess?.();
+      toast.success(`Permit application submitted! Number: ${permit.permitNumber}`);
+      onSuccess?.(permit);
     },
     onError: () => toast.error('Failed to submit permit application.'),
   });
@@ -231,7 +259,7 @@ export function PermitWizard({ type: initialType, onSuccess }: PermitWizardProps
           <Card>
             <CardContent className="p-6 space-y-3">
               <h3 className="font-semibold text-lg mb-4">Application Summary</h3>
-              {Object.entries(getValues()).filter(([_, v]) => v && v !== '').map(([key, value]) => (
+              {Object.entries(getValues()).filter(([, value]) => value && value !== '').map(([key, value]) => (
                 <div key={key} className="flex justify-between py-1.5 border-b border-border/50 last:border-0">
                   <span className="text-sm text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                   <span className="text-sm font-medium">{String(value)}</span>

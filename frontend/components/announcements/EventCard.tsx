@@ -14,10 +14,15 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const isFull = event.registered >= event.capacity;
-  const capacityPercent = (event.registered / event.capacity) * 100;
+  const [isRegistered, setIsRegistered] = React.useState(event.isRegistered);
+  const [registered, setRegistered] = React.useState(event.registered);
+  const isFull = registered >= event.capacity;
+  const capacityPercent = (registered / event.capacity) * 100;
 
   const handleRegister = () => {
+    if (isRegistered || isFull) return;
+    setRegistered((current) => Math.min(current + 1, event.capacity));
+    setIsRegistered(true);
     toast.success(`Registered for ${event.title}!`);
   };
 
@@ -37,7 +42,7 @@ export function EventCard({ event }: EventCardProps) {
           {/* Capacity bar */}
           <div>
             <div className="flex items-center justify-between text-xs mb-1">
-              <span className="text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {event.registered}/{event.capacity}</span>
+              <span className="text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {registered}/{event.capacity}</span>
               <span className={cn('font-medium', isFull ? 'text-destructive' : 'text-emerald-600')}>{isFull ? 'Full' : `${Math.round(capacityPercent)}%`}</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -49,7 +54,7 @@ export function EventCard({ event }: EventCardProps) {
           </div>
 
           <div className="flex items-center justify-between">
-            {event.isRegistered ? (
+            {isRegistered ? (
               <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">✓ Registered</Badge>
             ) : (
               <Button size="sm" onClick={handleRegister} disabled={isFull} aria-label={`Register for ${event.title}`}>

@@ -3,7 +3,6 @@
 import React from 'react';
 import { MapPin, Calendar, MessageSquare, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { SLABadge } from '@/components/shared/SLABadge';
 import { PRIORITY_COLORS, STATUS_COLORS } from '@/lib/constants';
 import { cn, formatDate, truncate } from '@/lib/utils';

@@ -16,7 +16,7 @@ export function Navbar() {
   const { logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-30 h-16 border-b border-border bg-card/90 backdrop-blur-lg">
       <div className="flex items-center justify-between h-full px-4 sm:px-6">
         <button
           onClick={toggleSidebar}
@@ -26,7 +26,11 @@ export function Navbar() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="hidden lg:block" />
+        <div className="hidden lg:block">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            Civic operations
+          </p>
+        </div>
 
         <div className="flex items-center gap-3">
           <NotificationDropdown />
@@ -38,7 +42,7 @@ export function Navbar() {
                 <p className="text-sm font-medium leading-none">{user.name}</p>
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
-              <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
+              <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold">
                 {getInitials(user.name)}
               </div>
               <Button

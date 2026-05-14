@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { FileText, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +10,6 @@ import { TicketCard } from '@/components/crms/TicketCard';
 import { TicketDetailModal } from '@/components/crms/TicketDetailModal';
 import { RequestSubmissionForm } from '@/components/crms/RequestSubmissionForm';
 import { EmptyState } from '@/components/shared/SharedComponents';
-import { FileText } from 'lucide-react';
 import type { CivicRequest } from '@/types';
 
 const mockRequests: CivicRequest[] = [
@@ -41,16 +40,27 @@ const mockRequests: CivicRequest[] = [
 ];
 
 export default function RequestsPage() {
+  const [requests, setRequests] = useState(mockRequests);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<CivicRequest | null>(null);
 
-  const filtered = mockRequests.filter((r) => {
+  const filtered = requests.filter((r) => {
     const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
     const matchesSearch = !searchQuery || r.title.toLowerCase().includes(searchQuery.toLowerCase()) || r.ticketId.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  const handleRequestCreated = (request: CivicRequest) => {
+    setRequests((current) => [request, ...current]);
+    setShowSubmitForm(false);
+  };
+
+  const handleRequestChanged = (request: CivicRequest) => {
+    setRequests((current) => current.map((item) => (item.id === request.id ? request : item)));
+    setSelectedTicket(request);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -89,11 +99,18 @@ export default function RequestsPage() {
       <Dialog open={showSubmitForm} onOpenChange={setShowSubmitForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Submit New Civic Request</DialogTitle></DialogHeader>
-          <RequestSubmissionForm onSuccess={() => setShowSubmitForm(false)} />
+          <RequestSubmissionForm onSuccess={handleRequestCreated} />
         </DialogContent>
       </Dialog>
 
-      {selectedTicket && <TicketDetailModal request={selectedTicket} open={!!selectedTicket} onClose={() => setSelectedTicket(null)} />}
+      {selectedTicket && (
+        <TicketDetailModal
+          request={selectedTicket}
+          open={!!selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+          onRequestChange={handleRequestChanged}
+        />
+      )}
     </div>
   );
 }

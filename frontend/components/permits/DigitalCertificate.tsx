@@ -50,6 +50,11 @@ export function DigitalCertificate({ permitNumber, permitType, applicantName, ap
             <span className="font-medium capitalize">{permitType}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Award className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Issued to:</span>
+            <span className="font-medium">{applicantName}</span>
+          </div>
+          <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Approved:</span>
             <span className="font-medium">{formatDate(approvalDate)}</span>

@@ -5,34 +5,66 @@ import { MapPin, Calendar, User, Send, Lock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { SLABadge } from '@/components/shared/SLABadge';
 import { RequestStatusPipeline } from '@/components/shared/RequestStatusPipeline';
 import { PRIORITY_COLORS } from '@/lib/constants';
 import { cn, formatDateTime, getInitials } from '@/lib/utils';
 import { useRBAC } from '@/hooks/useRBAC';
+import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
-import type { CivicRequest } from '@/types';
+import type { CivicRequest, RequestStatus } from '@/types';
 
 interface TicketDetailModalProps {
   request: CivicRequest;
   open: boolean;
   onClose: () => void;
+  onRequestChange?: (request: CivicRequest) => void;
 }
 
-export function TicketDetailModal({ request, open, onClose }: TicketDetailModalProps) {
+export function TicketDetailModal({ request, open, onClose, onRequestChange }: TicketDetailModalProps) {
   const [comment, setComment] = useState('');
   const [isInternal, setIsInternal] = useState(false);
-  const { can, hasRole } = useRBAC();
+  const { hasRole } = useRBAC();
+  const user = useAuthStore((state) => state.user);
   const isStaff = hasRole('staff', 'department_admin', 'super_admin');
+
+  const commitRequest = (updatedRequest: CivicRequest) => {
+    onRequestChange?.(updatedRequest);
+  };
 
   const handleAddComment = () => {
     if (!comment.trim()) return;
+    const updatedRequest = {
+      ...request,
+      comments: [
+        ...request.comments,
+        {
+          id: `comment-${Date.now()}`,
+          content: comment.trim(),
+          author: user || {
+            id: 'local-user',
+            name: isStaff ? 'Staff Member' : 'Resident',
+            email: 'local@civicconnect.test',
+            role: isStaff ? 'staff' : 'resident',
+          },
+          isInternal: isStaff && isInternal,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+    commitRequest(updatedRequest);
     toast.success('Comment added successfully');
     setComment('');
   };
 
   const handleStatusUpdate = (newStatus: string) => {
+    const updatedRequest = {
+      ...request,
+      status: newStatus as RequestStatus,
+      updatedAt: new Date().toISOString(),
+    };
+    commitRequest(updatedRequest);
     toast.success(`Status updated to ${newStatus}`);
   };
 
